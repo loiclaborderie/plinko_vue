@@ -6,6 +6,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, useTemplateRef, watch, type Ref } from 'vue'
 import { ROW_REWARDS } from '@/constants/plinko'
+import { PlinkoGameManager } from '@/classes/plinkoGameManager'
 
 const canvas = useTemplateRef('plinkoGame')
 const canvasStore = usePlinkoCanvas()
@@ -35,12 +36,17 @@ watch(
     console.log('earningTiles', earningTiles)
   },
 )
+
+function bet() {
+  const game = new PlinkoGameManager()
+  game.requestGame(0)
+}
 </script>
 
 <template>
   <div class="container">
     <div class="leftSide">
-      <button @click="gameStore.addBall">Bet</button>
+      <button @click="bet">Bet</button>
       <select v-model="maxRows" :disabled="gameActive">
         <option :key="row" v-for="row in possibleRows" :value="row">
           {{ row }}
@@ -51,7 +57,6 @@ watch(
           {{ risk }}
         </option>
       </select>
-      <button @click="gameStore.simulate">Simulate</button>
     </div>
     <div class="rightSide">
       <div class="relative-container">
@@ -79,7 +84,6 @@ watch(
       </div>
     </div>
   </div>
-  {{ sampleResults }}
 </template>
 
 <style scoped>

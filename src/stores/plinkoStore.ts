@@ -10,6 +10,7 @@ import {
   type Risk,
 } from '@/constants/plinko'
 import { type SampleResults } from '@/helpers/sampling'
+import { useBalanceStore } from './balanceStore'
 
 export const usePlinkoStore = defineStore('plinkoGame', () => {
   const gravity = paddify(0.2)
@@ -70,18 +71,17 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
     return paddify(spacing)
   }
 
-  function generateDropPoint(): number {
-    const center = CANVA_WIDTH / 2
-    const variation = 50
-    const randomOffset = Math.random() * variation - Math.floor(variation / 2)
-    const dropPoint = center + randomOffset
-    const roundedDropPoint = parseFloat(dropPoint.toFixed(5))
-    return paddify(roundedDropPoint)
-  }
+  // function generateDropPoint(): number {
+  //   const center = CANVA_WIDTH / 2
+  //   const variation = 50
+  //   const randomOffset = Math.random() * variation - Math.floor(variation / 2)
+  //   const dropPoint = center + randomOffset
+  //   const roundedDropPoint = parseFloat(dropPoint.toFixed(5))
+  //   return paddify(roundedDropPoint)
+  // }
 
   // Create a new ball
-  function addBall() {
-    const dropPoint = generateDropPoint()
+  function dropBall(dropPoint: number, earningResult: number | null) {
     const newBall = new Ball(
       dropPoint,
       paddify(35),
@@ -90,13 +90,9 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
       ballRadius.value,
       ballColor,
       (result: number) => {
-        if (!sampleResults.value) return
         const index = balls.value.indexOf(newBall)
         if (index !== -1) {
           balls.value.splice(index, 1)
-        }
-        if (result >= 0) {
-          sampleResults.value[result].push(dropPoint)
         }
         const tile = document.getElementById(`tile_${result}`)
         if (tile) {
@@ -110,16 +106,14 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
 
           tile.addEventListener('transitionend', resetTransform)
         }
+        if (earningResult) {
+          const balanceStore = useBalanceStore()
+          balanceStore.add(earningResult)
+        }
       },
     )
 
     balls.value.push(newBall)
-  }
-
-  function simulate() {
-    setInterval(() => {
-      addBall()
-    }, 150)
   }
 
   // Ball class
@@ -254,13 +248,12 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
   return {
     balls,
     obstacles,
-    addBall,
+    dropBall,
     createObstacles,
     paddify,
     unpaddify,
     maxRows: tempMaxRows,
     sampleResults,
-    simulate,
     spacing,
     risk: tempRisk,
     gameActive,
