@@ -8,7 +8,7 @@ onMounted(async()=> {
 </script>
 
 <template>
-  <Layout>
+  <AppLayout>
     <router-view />
-  </Layout>
+  </AppLayout>
 </template>
