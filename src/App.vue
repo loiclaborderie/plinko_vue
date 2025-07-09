@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { RouterView, RouterLink } from 'vue-router';
+import { onMounted } from 'vue';import { RouterView } from 'vue-router';
 import { useUserStore } from './stores/userStore';
 const userStore = useUserStore()
 onMounted(async()=> {
@@ -9,6 +8,7 @@ onMounted(async()=> {
 </script>
 
 <template>
-  <router-link to="/auth">Login/Register</router-link>
-  <router-view />
+  <Layout>
+    <router-view />
+  </Layout>
 </template>
