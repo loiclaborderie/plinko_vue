@@ -2,7 +2,7 @@
 import { usePlinkoCanvas } from '@/composables/usePlinkoCanvas'
 import { possibleRows, widthOfTilesContainer, riskLevels } from '@/constants/plinko'
 import { usePlinkoStore } from '@/stores/plinkoStore'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, useTemplateRef, watch, type Ref } from 'vue'
 import { ROW_REWARDS } from '@/constants/plinko'
@@ -13,6 +13,7 @@ const canvasStore = usePlinkoCanvas()
 const gameStore = usePlinkoStore()
 const { maxRows, sampleResults, obstacles, risk: riskSelected, gameActive } = storeToRefs(gameStore)
 const earningTiles = computed(() => ROW_REWARDS[maxRows.value][riskSelected.value])
+const betAmount = ref(0)
 
 onMounted(() => {
   console.log(canvas)
@@ -39,13 +40,14 @@ watch(
 
 function bet() {
   const game = new PlinkoGameManager()
-  game.requestGame(0)
+  game.requestGame(betAmount.value)
 }
 </script>
 
 <template>
   <div class="container">
     <div class="leftSide">
+      <input type="number" v-model="betAmount" />
       <button @click="bet">Bet</button>
       <select v-model="maxRows" :disabled="gameActive">
         <option :key="row" v-for="row in possibleRows" :value="row">
