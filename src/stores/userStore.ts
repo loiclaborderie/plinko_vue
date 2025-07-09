@@ -1,32 +1,29 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useBalanceStore } from './balanceStore'
+import axios from 'axios'
 
 export const useUserStore = defineStore('user', () => {
-  const user = ref<{ id: number; name: string; coins: number } | null>(null)
+  const user = ref<any | null>(null)
   const isConnected = ref(false)
   const balanceStore = useBalanceStore()
-  const token = ref<string | null>(null)
 
-  function connect(userData: { id: number; name: string; coins: number }, apiToken: string) {
-    user.value = userData
-    token.value = apiToken
-    isConnected.value = true
-    balanceStore.initializeBalance(userData.coins)
+  async function checkAuthStatus() {
+  try {
+    const response = await axios.get('/api/user');
+    isConnected.value = true;
+    user.value = response.data;
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      isConnected.value = false;
+      user.value = null;
+    }
   }
-
-  function disconnect() {
-    user.value = null
-    isConnected.value = false
-    balanceStore.initializeBalance(0)
-    token.value = null
-  }
+}
 
   return {
     user,
     isConnected,
-    connect,
-    token,
-    disconnect,
+    checkAuthStatus
   }
 })
