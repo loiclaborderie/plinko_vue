@@ -28,6 +28,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import router from '@/router';
+import { useUserStore } from '@/stores/userStore';
 
 const form = ref({
   name: 'testuser',
@@ -37,12 +38,14 @@ const form = ref({
 });
 
 const errors = ref<{general?:string, name?:string, email?:string, password?:string}>({});
+const userStore = useUserStore();
 
 const submitRegister = async () => {
   errors.value = {};
   try {
     const response = await axios.post('/register', form.value);
     console.log('Registration successful:', response.data);
+    await userStore.checkAuthStatus(); // Ensure auth status is updated
     router.push('/')
 
   } catch (error: any) {

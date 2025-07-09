@@ -17,8 +17,10 @@
 import axios from 'axios';
 import router from '@/router';
 import { ref } from 'vue';
+import { useUserStore } from '@/stores/userStore';
 
 const errors = ref<{general?: string}>({});
+const userStore = useUserStore();
 
 
 const form = ref({
@@ -32,6 +34,7 @@ const submitLogin = async () => {
     const response = await axios.post('/login', form.value);
     console.log('Login successful:', response.data);
 
+    await userStore.checkAuthStatus(); // Ensure auth status is updated
     router.push('/')
 
   } catch (error: any) {
