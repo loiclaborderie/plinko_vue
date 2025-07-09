@@ -1,5 +1,5 @@
 <template>
-    {{ userStore.user }}
+    User: {{ userStore.user }}
   <header>
     <h1>Plinko</h1>
   </header>
