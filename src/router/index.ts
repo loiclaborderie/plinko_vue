@@ -4,7 +4,7 @@ import Auth from '@/pages/AuthPage.vue';
 import PlinkoPage from '@/pages/PlinkoPage.vue';
 
 const routes = [
-  { path: '/auth', component: Auth, meta: { guest: true } },
+  { path: '/auth', component: Auth, meta: { guest: true, layout: 'none' } },
   { path: '/', component: PlinkoPage },
 ];
 
