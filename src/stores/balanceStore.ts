@@ -59,8 +59,20 @@ export const useBalanceStore = defineStore('balance', () => {
   }
 
   // Convenience methods
-  async function add(amount: number) {
-    return updateBalance(amount)
+  async function add(amount: number, sync = true) {
+    if(sync){
+      await addAndSync(amount)
+    } else {
+      addTemporaryWagerGain(amount)
+    }
+  }
+
+  async function addAndSync(amount: number) {
+    await updateBalance(amount)
+  }
+
+  function addTemporaryWagerGain(amount: number) {
+    balance.value = balance.value! + amount
   }
 
   async function subtract(amount: number) {
