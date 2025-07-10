@@ -16,9 +16,12 @@
 
         <div class="bg-secondary/50 px-4 py-1 rounded-lg border">
           <p class="text-sm text-muted-foreground">Balance</p>
-          <p class="text-xl font-bold text-plinko-gold">
+          <div class="text-xl font-bold text-plinko-gold flex gap-x-2 items-center">
             <NumberFlow :value="balanceStore.balance ?? 0" :format="{ style: 'currency', currency: 'USD' }" />
-          </p>
+            <div id="refill" @click="refillBalance" class="p-1 cursor-pointer">
+              <CirclePlus class="w-4 h-4" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -56,9 +59,11 @@ import {
   Settings,
   Volume2,
   VolumeX,
-  LogOut
+  LogOut,
+  CirclePlus
 } from 'lucide-vue-next';
 import NumberFlow from '@number-flow/vue'
+import { toast } from 'vue-sonner';
 
 type PlayerHUDProps = {
   soundEnabled?: boolean;
@@ -70,6 +75,15 @@ defineProps<PlayerHUDProps>();
 
 const userStore = useUserStore()
 const balanceStore = useBalanceStore()
+
+const refillBalance = async() => {
+  try {
+    await balanceStore.refillBalance()
+    toast.success('Refilled', {description: 'Your balance was successfully refilled.'})
+  } catch (e: any){
+    toast.error('Error', {description: 'Failed to refill your balance. Please try again later.'})
+  }
+}
 
 
 </script>
