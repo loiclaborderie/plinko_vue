@@ -35,10 +35,7 @@ export class PlinkoGameManager {
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e)
       console.error('Request failed:', message)
-      toast({
-        title: 'Error',
-        description: 'Failed to place bet. Please try again.',
-      })
+      toast.error('Error', {description: 'Failed to place bet. Please try again.'})
     }
   }
 }
