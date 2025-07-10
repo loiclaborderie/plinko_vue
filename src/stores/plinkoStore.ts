@@ -11,6 +11,7 @@ import {
 } from '@/constants/plinko'
 import { type SampleResults } from '@/helpers/sampling'
 import { useBalanceStore } from './balanceStore'
+import { toast } from 'vue-sonner'
 
 export const usePlinkoStore = defineStore('plinkoGame', () => {
   const gravity = paddify(0.2)
@@ -81,7 +82,7 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
   // }
 
   // Create a new ball
-  function dropBall(dropPoint: number, earningResult: number | null) {
+  function dropBall(dropPoint: number, earningResult: number | null, wager: number) {
     const newBall = new Ball(
       dropPoint,
       paddify(35),
@@ -107,8 +108,25 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
           tile.addEventListener('transitionend', resetTransform)
         }
         if (earningResult) {
+          console.log({earningResult, wager})
           const balanceStore = useBalanceStore()
           balanceStore.add(earningResult)
+          const resultAmount = Math.abs(wager - earningResult)
+          const formattedAmount = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+          }).format(resultAmount)
+          toast.message(earningResult > wager ? 'Nice!' : 'Too bad!', {
+            description: `You ${earningResult > wager ? 'earned' : 'lost'} ${formattedAmount}!`,
+          })
+        } else if (earningResult && earningResult - wager === 0) {
+          toast.message('Even!', {
+            description: 'You made even!',
+          })
+        } else {
+          toast.message('Free Play', {
+            description: 'You played for nothing hehe!',
+          })
         }
       },
     )
