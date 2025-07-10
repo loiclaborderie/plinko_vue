@@ -1,32 +1,22 @@
 <template>
-    User: {{ userStore.user }}
-  <header>
-    <h1>Plinko</h1>
-  </header>
+  <div class="container mx-auto px-4 max-w-7xl">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- Game Settings Sidebar -->
+      <div class="lg:col-span-1 order-2 lg:order-1">
+        <GameSettings />
+      </div>
 
-  <main>
-    <PlinkoCanva />
-    Balance:
-    <span style="font-size: xx-large; font-weight: 900">{{ balanceStore.balance ?? 0 }}</span>
-  </main>
-
+      <!-- Plinko Board -->
+      <div class="lg:col-span-3 order-1 lg:order-2">
+        <PlinkoCanva />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import PlinkoCanva from '@/components/PlinkoCanva.vue'
-import { useBalanceStore } from '@/stores/balanceStore'
-import { useUserStore } from '@/stores/userStore'
+import GameSettings from '@/components/GameSettings.vue'
 
-const balanceStore = useBalanceStore()
-const userStore = useUserStore()
 </script>
-
-
-<style scoped>
-h1 {
-  text-align: center;
-  font-weight: 900;
-  font-size: 40px;
-}
-</style>
 
