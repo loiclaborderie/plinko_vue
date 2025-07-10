@@ -110,7 +110,8 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
         if (earningResult) {
           console.log({earningResult, wager})
           const balanceStore = useBalanceStore()
-          balanceStore.add(earningResult)
+          balanceStore.add(earningResult, !gameActive.value)
+          // We only sync balance with server if there is no ball falling
           const resultAmount = Math.abs(wager - earningResult)
           const formattedAmount = new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -119,7 +120,7 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
           toast.message(earningResult > wager ? 'Nice!' : 'Too bad!', {
             description: `You ${earningResult > wager ? 'earned' : 'lost'} ${formattedAmount}!`,
           })
-        } else if (earningResult && earningResult - wager === 0) {
+        } else if (earningResult! - wager === 0) {
           toast.message('Even!', {
             description: 'You made even!',
           })
