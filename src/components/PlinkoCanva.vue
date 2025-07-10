@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { usePlinkoCanvas } from '@/composables/usePlinkoCanvas'
-import { possibleRows, widthOfTilesContainer, riskLevels } from '@/constants/plinko'
+import { widthOfTilesContainer } from '@/constants/plinko'
 import { usePlinkoStore } from '@/stores/plinkoStore'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, useTemplateRef, watch, type Ref } from 'vue'
 import { ROW_REWARDS } from '@/constants/plinko'
-import { PlinkoGameManager } from '@/classes/plinkoGameManager'
 
 const canvas = useTemplateRef('plinkoGame')
 const canvasStore = usePlinkoCanvas()
 const gameStore = usePlinkoStore()
-const { maxRows, sampleResults, obstacles, risk: riskSelected, gameActive } = storeToRefs(gameStore)
+const { maxRows, sampleResults, obstacles, risk: riskSelected } = storeToRefs(gameStore)
 const earningTiles = computed(() => ROW_REWARDS[maxRows.value][riskSelected.value])
-const betAmount = ref(0)
 
 onMounted(() => {
   console.log(canvas)
@@ -37,51 +35,28 @@ watch(
     console.log('earningTiles', earningTiles)
   },
 )
-
-function bet() {
-  const game = new PlinkoGameManager()
-  game.requestGame(betAmount.value)
-}
 </script>
 
 <template>
-  <div class="container">
-    <div class="leftSide">
-      <input type="number" v-model="betAmount" />
-      <button @click="bet">Bet</button>
-      <select v-model="maxRows" :disabled="gameActive">
-        <option :key="row" v-for="row in possibleRows" :value="row">
-          {{ row }}
-        </option>
-      </select>
-      <select v-model="riskSelected" :disabled="gameActive">
-        <option :key="risk" v-for="risk in riskLevels" :value="risk">
-          {{ risk }}
-        </option>
-      </select>
-    </div>
-    <div class="rightSide">
-      <div class="relative-container">
-        <canvas ref="plinkoGame"></canvas>
-        <div class="abs">
-          <div
-            id="results"
-            v-if="earningTiles.length && obstacles.length"
-            :style="{
-              '--columns': earningTiles.length,
-              '--gap': `${obstacles[0].radius}px`,
-              width: widthOfTilesContainer[maxRows],
-            }"
-          >
-            <div
-              :id="`tile_${index}`"
-              :key="index"
-              v-for="(tile, index) in earningTiles"
-              class="earningTile"
-            >
-              <span>{{ tile }}</span>
-            </div>
-          </div>
+  <div class="relative-container">
+    <canvas ref="plinkoGame"></canvas>
+    <div class="abs">
+      <div
+        id="results"
+        v-if="earningTiles.length && obstacles.length"
+        :style="{
+          '--columns': earningTiles.length,
+          '--gap': `${obstacles[0].radius}px`,
+          width: widthOfTilesContainer[maxRows],
+        }"
+      >
+        <div
+          :id="`tile_${index}`"
+          :key="index"
+          v-for="(tile, index) in earningTiles"
+          class="earningTile"
+        >
+          <span>{{ tile }}</span>
         </div>
       </div>
     </div>
@@ -90,10 +65,9 @@ function bet() {
 
 <style scoped>
 canvas {
-  background: #333;
   width: 100%;
-  object-fit: contain;
-  max-height: 800px;
+  object-fit: fill;
+  max-height: 80vh;
 }
 
 #results {
@@ -135,7 +109,6 @@ canvas {
 }
 
 .relative-container {
-  margin: 50px auto 0;
   width: 100%;
   max-width: 800px;
   position: relative;
@@ -143,7 +116,6 @@ canvas {
     position: absolute;
     left: 0;
     right: 0;
-    background: blue;
   }
 }
 </style>
