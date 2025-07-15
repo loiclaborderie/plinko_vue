@@ -1,69 +1,11 @@
 <template>
-  <Card class="w-full max-w-sm bg-card/90 backdrop-blur-sm border-border">
-    <CardHeader>
-      <CardTitle class="text-lg font-bold text-center text-foreground">
-        Game Settings
-      </CardTitle>
-    </CardHeader>
-    <CardContent class="space-y-6">
-      <!-- Risk Level Selector -->
-      <div class="space-y-2">
-        <Label for="risk-level" class="text-sm font-medium">Risk Level</Label>
-        <Select v-model="riskSelected" :disabled="gameActive">
-          <SelectTrigger class="bg-secondary border-border">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent class="bg-popover border-border">
-            <SelectItem v-for="risk of riskLevels" :value="risk" :key="risk" class="cursor-pointer">
-              <div class="flex items-center space-x-2">
-                <component :is="riskLevelIcons[risk]" class="w-4 h-4" :class="riskLevelColors[risk]" />
-                <span>{{ capitalize(risk) }} Level</span>
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+  <BettingInterface v-model:wager-amount="wagerAmount">
+    <template #manualButtons>
+      <RiskAndColumns v-model:risk="riskSelected" v-model:columns="maxRows" :disabled="gameActive" />
 
-      <!-- Columns Selector -->
-      <div class="space-y-2">
-        <Label for="columns" class="text-sm font-medium">Columns</Label>
-        <Select v-model="maxRows" :disabled="gameActive">
-          <SelectTrigger class="bg-secondary border-border">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent class="bg-popover border-border">
-            <SelectItem v-for="num in possibleRows" :key="num" :value="num" class="cursor-pointer">
-              {{ num }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Button :disabled="wagerAmount && !balanceStore.canAfford(wagerAmount)" @click="bet" class="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-3 shadow-md rounded-md">Bet</Button>
 
-      <!-- Wager Amount Input -->
-      <div class="space-y-2">
-        <Label for="wager" class="text-sm font-medium">Wager Amount</Label>
-        <div class="relative">
-          <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
-          <Input
-            id="wager"
-            type="number"
-            min="0.01"
-            step="0.01"
-            v-model.number="wagerAmount"
-            class="pl-7 bg-secondary border-border"
-            placeholder="0.00"
-          />
-        </div>
-      </div>
-
-      <!-- Drop Ball Button -->
-      <Button
-        @click="bet"
-        class="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-3 shadow-md"
-      >Bet</Button>
-
-      <!-- Game Info Section -->
-      <div class="bg-secondary/50 p-3 rounded-lg border border-border">
+      <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-600">
         <div class="flex items-center justify-between text-sm">
           <span class="text-muted-foreground">Risk:</span>
           <div :class="['flex items-center space-x-1', riskLevelColors[riskSelected]]">
@@ -78,28 +20,60 @@
           </span>
         </div>
       </div>
-    </CardContent>
-  </Card>
+    </template>
+    <template #autoButtons>
+      <RiskAndColumns v-model:risk="riskSelected" v-model:columns="maxRows" :disabled="gameActive" />
+
+      <div class="space-y-4">
+        <Label class="text-slate-300 text-sm">Number of bets</Label>
+        <InputAutoBet v-model="numberOfBets" />
+      </div>
+
+      <Button @click="triggerAutoBet" class="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold py-3 shadow-md rounded-md" :disabled="!isAutobet && !canAffordAutoBet">{{ isAutobet ? 'Stop' : 'Start' }} autobet</Button>
+
+      <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-600">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-muted-foreground">Risk:</span>
+          <div :class="['flex items-center space-x-1', riskLevelColors[riskSelected]]">
+            <component :is="riskLevelIcons[riskSelected]" class="w-4 h-4" />
+            <span class="capitalize font-medium">{{ capitalize(riskSelected) }}</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-sm mt-1">
+          <span class="text-muted-foreground">Potential Win:</span>
+          <span class="text-plinko-gold font-medium">
+            {{ potentialEarnings }}
+          </span>
+        </div>
+      </div>
+    </template>
+  </BettingInterface>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { Dice1, TrendingUp, Zap } from 'lucide-vue-next';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { possibleRows, riskLevels } from '@/constants/plinko'
+import { Button } from '@/components/ui/button';
 import { usePlinkoStore } from '@/stores/plinkoStore';
 import { storeToRefs } from 'pinia';
 import { PlinkoGameManager } from '@/classes/plinkoGameManager';
 import { ROW_REWARDS } from '@/constants/plinko'
+import BettingInterface from './BettingInterface.vue';
+import InputAutoBet from './InputAutoBet.vue';
+import RiskAndColumns from './plinko/riskAndColumns.vue';
+import { toast } from 'vue-sonner';
+import { useBalanceStore } from '@/stores/balanceStore';
+import { useSoundStore } from '@/stores/soundStore';
+const balanceStore = useBalanceStore()
+const soundStore = useSoundStore()
 
 const gameStore = usePlinkoStore()
 
 const { maxRows, risk: riskSelected, gameActive } = storeToRefs(gameStore)
 const earningTiles = computed(() => ROW_REWARDS[maxRows.value][riskSelected.value])
+
+const isAutobet = ref(false)
 
 
 console.log('gamde defaults', maxRows.value, riskSelected.value)
@@ -127,18 +101,64 @@ const potentialEarnings = computed(()=>{
 })
 
 const wagerAmount = ref(0);
+const numberOfBets = ref(0);
 
 const capitalize = (str: string) => {
-  if (!str.length) return "";  // Check if the string is empty or undefined
+  if (!str.length) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-const bet = () => {
+const bet = async() => {
   const game = new PlinkoGameManager()
-  game.requestGame(wagerAmount.value)
+  try {
+    await game.requestGame(wagerAmount.value)
+    soundStore.playSound('bet')
+  } catch (e: any){
+    console.error('error, couldnt proceed with bet', e)
+  }
+}
+
+const triggerAutoBet = () => {
+  isAutobet.value = !isAutobet.value
+  if(isAutobet.value === true && !balanceStore.canAfford(wagerAmount.value)){
+    return
+  }
+  autobet()
+}
+
+const canAffordAutoBet = computed(()=>{
+  if(wagerAmount.value === 0) return true
+  if(numberOfBets.value === 0) return balanceStore.canAfford(wagerAmount.value)
+  return balanceStore.canAfford(wagerAmount.value * numberOfBets.value)
+})
+
+const autobet = async () => {
+  if(!isAutobet.value) {
+    toast.error('Autobet stopped')
+    return
+  }
+  toast.success('Autobet started')
+  let numberOfBetsLeft = numberOfBets.value || Number.POSITIVE_INFINITY
+  const game = new PlinkoGameManager()
+  while(isAutobet.value && numberOfBetsLeft > 0){
+    console.log('autobet', numberOfBetsLeft)
+    try {
+      await game.requestGame(wagerAmount.value)
+      if(numberOfBetsLeft === numberOfBets.value){
+        // the first bet has been approved, we can play sound
+        soundStore.playSound('bet')
+      }
+      numberOfBetsLeft--
+      console.log('it went fine', numberOfBetsLeft)
+    } catch (e: any){
+      isAutobet.value = false
+      console.error('error, autobet stopped', e)
+      toast.error('Autobet stopped', e.message ?? '')
+      return
+    }
+  }
+  isAutobet.value = false
 }
 </script>
 
-<style scoped>
-/* Add any additional styles here */
-</style>
+<style scoped></style>
