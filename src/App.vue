@@ -19,7 +19,7 @@ const layoutComponent = computed(() => {
 </script>
 
 <template>
-  <Toaster position="top-right" :toastOptions="{ descriptionClass: '!text-muted-foreground'}" />
+  <Toaster richColors position="top-right" :toastOptions="{ descriptionClass: '!text-muted-foreground'}" />
   <component :is="layoutComponent">
     <router-view />
   </component>
