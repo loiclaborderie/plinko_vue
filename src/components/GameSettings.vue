@@ -76,8 +76,6 @@ const earningTiles = computed(() => ROW_REWARDS[maxRows.value][riskSelected.valu
 const isAutobet = ref(false)
 
 
-console.log('gamde defaults', maxRows.value, riskSelected.value)
-
 const riskLevelIcons = {
   low: Dice1,
   medium: TrendingUp,
