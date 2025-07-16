@@ -115,12 +115,16 @@ const bet = async() => {
     soundStore.playSound('bet')
   } catch (e: any){
     console.error('error, couldnt proceed with bet', e)
+    toast.error('Failed to place bet', { description: e.message || 'Please try again' })
+
   }
 }
 
 const triggerAutoBet = () => {
   isAutobet.value = !isAutobet.value
-  if(isAutobet.value === true && !balanceStore.canAfford(wagerAmount.value)){
+  if(isAutobet.value === true && !canAffordAutoBet.value){
+    isAutobet.value = false
+    toast.error('Insufficient balance for autobet')
     return
   }
   autobet()
@@ -151,7 +155,7 @@ const autobet = async () => {
     } catch (e: any){
       isAutobet.value = false
       console.error('error, autobet stopped', e)
-      toast.error('Autobet stopped', e.message ?? '')
+      toast.error('Autobet stopped', { description: e.message || 'An error occurred' })
       return
     }
   }
