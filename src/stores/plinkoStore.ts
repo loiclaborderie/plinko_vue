@@ -11,7 +11,8 @@ import {
 } from '@/constants/plinko'
 import { type SampleResults } from '@/helpers/sampling'
 import { useBalanceStore } from './balanceStore'
-import { toast } from 'vue-sonner'
+import { useGameResultStore } from './gameResultStore'
+import { useSoundStore } from './soundStore'
 
 export const usePlinkoStore = defineStore('plinkoGame', () => {
   const gravity = paddify(0.2)
@@ -26,6 +27,8 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
   })
   const gameActive = computed(() => balls.value.length > 0)
   const sampleResults = ref<SampleResults>()
+  const soundStore = useSoundStore()
+
 
   // Custom getter for max rows to prevent changing the value while the game is active
   const tempMaxRows = computed({
@@ -82,7 +85,7 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
   // }
 
   // Create a new ball
-  function dropBall(dropPoint: number, earningResult: number | null, wager: number) {
+  function dropBall(dropPoint: number, earningResult: number | null, multiplier: number) {
     const newBall = new Ball(
       dropPoint,
       paddify(35),
@@ -97,6 +100,7 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
         }
         const tile = document.getElementById(`tile_${result}`)
         if (tile) {
+          soundStore.playSoundVariant('tile')
           tile.style.transform = 'translateY(10%)'
           tile.style.transition = 'transform 0.2s ease-in-out'
           const resetTransform = () => {
@@ -108,27 +112,13 @@ export const usePlinkoStore = defineStore('plinkoGame', () => {
           tile.addEventListener('transitionend', resetTransform)
         }
         if (earningResult) {
-          console.log({earningResult, wager})
           const balanceStore = useBalanceStore()
           balanceStore.add(earningResult, !gameActive.value)
           // We only sync balance with server if there is no ball falling
-          const resultAmount = Math.abs(wager - earningResult)
-          const formattedAmount = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-          }).format(resultAmount)
-          toast.message(earningResult > wager ? 'Nice!' : 'Too bad!', {
-            description: `You ${earningResult > wager ? 'earned' : 'lost'} ${formattedAmount}!`,
-          })
-        } else if (earningResult! - wager === 0) {
-          toast.message('Even!', {
-            description: 'You made even!',
-          })
-        } else {
-          toast.message('Free Play', {
-            description: 'You played for nothing hehe!',
-          })
         }
+        const resultStore = useGameResultStore()
+        // TODO: add the sound here.
+        resultStore.addGameResult('plinko', multiplier)
       },
     )
 

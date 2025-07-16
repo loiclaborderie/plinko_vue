@@ -6,12 +6,15 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, useTemplateRef, watch, type Ref } from 'vue'
 import { ROW_REWARDS } from '@/constants/plinko'
+import { usePlinkoTileColors } from '@/composables/usePlinkoTileColors'
+import PlinkoResultHistory from './PlinkoResultHistory.vue'
 
 const canvas = useTemplateRef('plinkoGame')
 const canvasStore = usePlinkoCanvas()
 const gameStore = usePlinkoStore()
 const { maxRows, sampleResults, obstacles, risk: riskSelected } = storeToRefs(gameStore)
 const earningTiles = computed(() => ROW_REWARDS[maxRows.value][riskSelected.value])
+const plinkoColors = usePlinkoTileColors()
 
 onMounted(() => {
   console.log(canvas)
@@ -19,6 +22,7 @@ onMounted(() => {
     canvasStore.initialize(canvas.value)
     canvasStore.update()
   }
+  console.log(plinkoColors)
 })
 
 onUnmounted(() => {
@@ -40,7 +44,10 @@ watch(
 <template>
   <div class="relative-container">
     <canvas ref="plinkoGame"></canvas>
-    <div class="abs">
+    <div class="history-display">
+      <PlinkoResultHistory />
+    </div>
+    <div class="footer">
       <div
         id="results"
         v-if="earningTiles.length && obstacles.length"
@@ -53,6 +60,7 @@ watch(
         <div
           :id="`tile_${index}`"
           :key="index"
+          :style="{ '--tile-color': plinkoColors[index] }"
           v-for="(tile, index) in earningTiles"
           class="earningTile"
         >
@@ -81,14 +89,16 @@ canvas {
 }
 
 .earningTile {
+  --tile-color: hsl(16, 100%, 50%);
+  --tile-color-shadow: hsl(from var(--tile-color) h s calc(l - 20));
   position: relative;
   cursor: help;
   border-radius: 0.3em;
   text-align: center;
   animation-duration: 0.3s !important;
   animation-timing-function: cubic-bezier(0.18, 0.89, 0.32, 1.28);
-  box-shadow: 0 0.2em 0 0 #a60000;
-  background: orangered;
+  box-shadow: 0 0.2em 0 0 var(--tile-color-shadow);
+  background: var(--tile-color);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -112,10 +122,17 @@ canvas {
   width: 100%;
   max-width: 800px;
   position: relative;
-  .abs {
-    position: absolute;
-    left: 0;
-    right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  .footer {
+    width: 100%;
   }
+}
+
+.history-display {
+  position: absolute;
+  right: 0;
 }
 </style>

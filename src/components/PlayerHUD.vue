@@ -28,9 +28,9 @@
       <div class="flex items-center space-x-2">
         <button
           class="hover:bg-secondary rounded px-2 py-1"
-          @click="onToggleSound"
+          @click="soundStore.toggleSound"
         >
-          <component :is="soundEnabled ? Volume2 : VolumeX" class="w-4 h-4" />
+          <component :is="soundStore.isEnabled ? Volume2 : VolumeX" class="w-4 h-4" />
         </button>
 
         <button
@@ -64,10 +64,9 @@ import {
 } from 'lucide-vue-next';
 import NumberFlow from '@number-flow/vue'
 import { toast } from 'vue-sonner';
+import { useSoundStore } from '@/stores/soundStore';
 
 type PlayerHUDProps = {
-  soundEnabled?: boolean;
-  onToggleSound?: () => void;
   onSettings?: () => void;
 }
 
@@ -75,6 +74,7 @@ defineProps<PlayerHUDProps>();
 
 const userStore = useUserStore()
 const balanceStore = useBalanceStore()
+const soundStore = useSoundStore()
 
 const refillBalance = async() => {
   try {
