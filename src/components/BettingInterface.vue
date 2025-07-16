@@ -27,8 +27,6 @@ const handleMaxBet = () => {
     wagerAmount.value = 0
     return
   }
-  console.log(balanceStore.balance)
-  console.log(balanceStore.balance.toFixed(1))
   wagerAmount.value = Number.parseFloat(balanceStore.balance.toFixed(1))
 }
 

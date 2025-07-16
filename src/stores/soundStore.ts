@@ -198,7 +198,6 @@ export const useSoundStore = defineStore('sound', () => {
   const preloadSounds = (soundMap: SoundMap): void => {
     Object.entries(soundMap).forEach(([name, src]) => {
       loadSound(name, src)
-      console.log('load sound', {name, src, sounds: sounds.value})
     })
   }
 

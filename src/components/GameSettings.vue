@@ -141,7 +141,6 @@ const autobet = async () => {
   let numberOfBetsLeft = numberOfBets.value || Number.POSITIVE_INFINITY
   const game = new PlinkoGameManager()
   while(isAutobet.value && numberOfBetsLeft > 0){
-    console.log('autobet', numberOfBetsLeft)
     try {
       await game.requestGame(wagerAmount.value)
       if(numberOfBetsLeft === numberOfBets.value){
@@ -149,7 +148,6 @@ const autobet = async () => {
         soundStore.playSound('bet')
       }
       numberOfBetsLeft--
-      console.log('it went fine', numberOfBetsLeft)
     } catch (e: any){
       isAutobet.value = false
       console.error('error, autobet stopped', e)
