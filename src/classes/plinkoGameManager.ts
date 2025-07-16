@@ -4,9 +4,9 @@ import axios from 'axios'
 export class PlinkoGameManager {
   async requestGame(amount: number) {
     let startRound = true
+    const balanceStore = useBalanceStore()
     if (amount > 0) {
-      const balanceStore = useBalanceStore()
-      startRound = balanceStore.substractWager(amount)
+      startRound = balanceStore.canAfford(amount)
       // we check if we can pay the amount due to start
     }
 
@@ -21,6 +21,11 @@ export class PlinkoGameManager {
         risk: plinko.risk,
         amount,
       })
+
+      // Deduct wager only after successful API call
+      if (amount > 0) {
+        balanceStore.substractWager(amount)
+      }
 
       const { drop_point, multiplier, balance } = result.data
 
